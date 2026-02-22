@@ -2232,4 +2232,9 @@ stockEntry.switchTab = function(i) {
     ui.refreshStockForm();
 };
 
+document.addEventListener("deviceready", function () {
+    window.appReady = true;
+    console.log("Device ready");
+});
+
 ui.render();
