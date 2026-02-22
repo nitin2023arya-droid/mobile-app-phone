@@ -36,7 +36,7 @@ function resolveLedgerParticular(e) {
 }
 
 /**
- * Generates the PDF and handles Native Sharing (Android) or Browser Download.
+ * Generates the PDF and handles Native Sharing (Android/iOS) or Browser Download.
  */
 async function exportCustomerPDF(customerId) {
     const fromDate = document.getElementById('pdf-from')?.value;
@@ -213,24 +213,32 @@ async function exportCustomerPDF(customerId) {
     if (window.Capacitor && Capacitor.isNativePlatform()) {
         try {
             const { Filesystem, Share } = Capacitor.Plugins;
+            
+            // Generate PDF as Base64 string
             const pdfBase64 = doc.output('datauristring').split(',')[1];
 
+            // Save file to Cache directory (temp storage)
             const savedFile = await Filesystem.writeFile({
                 path: fileName,
                 data: pdfBase64,
-                directory: 'CACHE'
+                directory: 'CACHE',
+                encoding: 'base64' // Required for Capacitor 6 base64 handling
             });
 
+            // Trigger Native Share Sheet
             await Share.share({
-                title: 'Account Statement',
-                text: `Bullion statement for ${customer.name}`,
+                title: 'Bullion Statement',
+                text: `Account Statement for ${customer.name}`,
                 url: savedFile.uri,
-                dialogTitle: 'Share PDF via...'
+                dialogTitle: 'Share PDF via'
             });
+
         } catch (err) {
-            alert("Native Export Error: " + err.message);
+            console.error("PDF Export failed", err);
+            alert("Export Error: " + err.message);
         }
     } else {
+        // Fallback for Web Browser
         doc.save(fileName);
     }
 
